@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Shortcuts Configuration</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: -apple-system, sans-serif;
+      margin: 0;
+      padding: 10px;
+      background: #f8f8f8;
+      color: #333;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      color: #0066CC;
+    }
+    .shortcut {
+      background: white;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 15px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .shortcut-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .field {
+      margin-bottom: 10px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    .delete-btn {
+      background: #ff3b30;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    .btn {
+      background: #0066CC;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 10px 15px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    .btn-add {
+      background: #34c759;
+    }
+    .btn-cancel {
+      background: #999;
+    }
+    .buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+    }
+    .color-preview {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Shortcuts Configuration</h1>
+    
+    <div id="shortcuts-container">
+      <!-- Shortcuts will be added here -->
+    </div>
+    
+    <button id="add-btn" class="btn btn-add">Add Shortcut</button>
+    
+    <div class="buttons">
+      <button id="save-btn" class="btn">Save Settings</button>
+      <button id="cancel-btn" class="btn btn-cancel">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    // Available colors
+    const COLORS = [
+      { name: 'Red', value: 'red' },
+      { name: 'Orange', value: 'orange' },
+      { name: 'Yellow', value: 'yellow' },
+      { name: 'Green', value: 'green' },
+      { name: 'Blue', value: 'blue' },
+      { name: 'Indigo', value: 'indigo' },
+      { name: 'Purple', value: 'purple' },
+      { name: 'Pink', value: 'pink' }
+    ];
+
+    // Available icons
+    const ICONS = [
+      { name: 'Info', value: 'info' },
+      { name: 'Flag', value: 'flag' },
+      { name: 'Notification', value: 'notification' },
+      { name: 'Alarm', value: 'alarm' },
+      { name: 'Star', value: 'favorite' },
+      { name: 'Settings', value: 'configure' },
+      { name: 'Phone', value: 'phone' },
+      { name: 'Music', value: 'media' }
+    ];
+
+    // Get current settings from URL
+    function getUrlParam(name) {
+      const match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+      return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+    }
+
+    // Shortcuts array
+    let shortcuts = [];
+    
+    // Initialize
+    function init() {
+      // Load shortcuts from URL
+      const shortcutsParam = getUrlParam('shortcuts');
+      if (shortcutsParam) {
+        try {
+          shortcuts = JSON.parse(shortcutsParam);
+        } catch (e) {
+          console.error('Error parsing shortcuts', e);
+          shortcuts = [];
+        }
+      }
+      
+      // If no shortcuts, add an empty one
+      if (shortcuts.length === 0) {
+        shortcuts.push({
+          name: '',
+          icon: 'notification',
+          color: 'indigo'
+        });
+      }
+      
+      // Render shortcuts
+      renderShortcuts();
+      
+      // Setup event listeners
+      document.getElementById('add-btn').addEventListener('click', addShortcut);
+      document.getElementById('save-btn').addEventListener('click', saveSettings);
+      document.getElementById('cancel-btn').addEventListener('click', cancel);
+    }
+    
+    // Render all shortcuts
+    function renderShortcuts() {
+      const container = document.getElementById('shortcuts-container');
+      container.innerHTML = '';
+      
+      shortcuts.forEach((shortcut, index) => {
+        const shortcutEl = document.createElement('div');
+        shortcutEl.className = 'shortcut';
+        
+        shortcutEl.innerHTML = `
+          <div class="shortcut-header">
+            <h3>Shortcut ${index + 1}</h3>
+            <button class="delete-btn" data-index="${index}">&times;</button>
+          </div>
+          <div class="field">
+            <label for="name-${index}">Name:</label>
+            <input type="text" id="name-${index}" data-index="${index}" data-field="name" 
+                  value="${shortcut.name || ''}" placeholder="Exact shortcut name">
+          </div>
+          <div class="field">
+            <label for="color-${index}">Color:</label>
+            <select id="color-${index}" data-index="${index}" data-field="color">
+              ${COLORS.map(color => `
+                <option value="${color.value}" ${shortcut.color === color.value ? 'selected' : ''}>
+                  <span class="color-preview" style="background: ${color.value}"></span> ${color.name}
+                </option>
+              `).join('')}
+            </select>
+          </div>
+          <div class="field">
+            <label for="icon-${index}">Icon:</label>
+            <select id="icon-${index}" data-index="${index}" data-field="icon">
+              ${ICONS.map(icon => `
+                <option value="${icon.value}" ${shortcut.icon === icon.value ? 'selected' : ''}>
+                  ${icon.name}
+                </option>
+              `).join('')}
+            </select>
+          </div>
+        `;
+        
+        container.appendChild(shortcutEl);
+      });
+      
+      // Add event listeners to inputs and delete buttons
+      document.querySelectorAll('[data-field]').forEach(el => {
+        el.addEventListener('change', updateShortcut);
+      });
+      
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', deleteShortcut);
+      });
+    }
+    
+    // Update shortcut when input changes
+    function updateShortcut(e) {
+      const index = parseInt(e.target.dataset.index);
+      const field = e.target.dataset.field;
+      shortcuts[index][field] = e.target.value;
+    }
+    
+    // Add a new shortcut
+    function addShortcut() {
+      shortcuts.push({
+        name: '',
+        icon: 'notification',
+        color: 'indigo'
+      });
+      renderShortcuts();
+    }
+    
+    // Delete a shortcut
+    function deleteShortcut(e) {
+      const index = parseInt(e.target.dataset.index);
+      shortcuts.splice(index, 1);
+      
+      // Add an empty one if none left
+      if (shortcuts.length === 0) {
+        shortcuts.push({
+          name: '',
+          icon: 'notification',
+          color: 'indigo'
+        });
+      }
+      
+      renderShortcuts();
+    }
+    
+    // Save settings
+    function saveSettings() {
+      // Filter out empty shortcuts
+      const validShortcuts = shortcuts.filter(s => s.name && s.name.trim() !== '');
+      
+      // Return to Pebble
+      window.location.href = 'pebblejs://close#' + encodeURIComponent(JSON.stringify(validShortcuts));
+    }
+    
+    // Cancel
+    function cancel() {
+      window.location.href = 'pebblejs://close';
+    }
+    
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
