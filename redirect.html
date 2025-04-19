@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Redirecting to Shortcut</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+      color: #333;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding-top: 50px;
+    }
+    h1 {
+      color: #0070CC;
+    }
+    .message {
+      margin: 20px 0;
+      padding: 15px;
+      border-radius: 8px;
+      background-color: #f8f8f8;
+    }
+    .button {
+      display: inline-block;
+      margin: 10px;
+      padding: 12px 24px;
+      background-color: #0070CC;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+    .try-again {
+      margin-top: 30px;
+      font-size: 14px;
+    }
+  </style>
+  <script>
+    // Get the shortcut name from the URL parameters
+    function getShortcutParam() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('shortcut');
+    }
+    
+    // Try to run the shortcut using the URL scheme
+    function runShortcut() {
+      const shortcutName = getShortcutParam();
+      if (!shortcutName) {
+        document.getElementById('message').innerHTML = 'No shortcut name provided.';
+        return;
+      }
+      
+      // Create the shortcut URL
+      const shortcutURL = 'shortcuts://run-shortcut?name=' + shortcutName;
+      
+      // Try to open it
+      window.location.href = shortcutURL;
+      
+      // Show message after a delay (if redirect didn't work)
+      setTimeout(function() {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('fallback').style.display = 'block';
+        
+        // Set direct link
+        document.getElementById('direct-link').href = shortcutURL;
+        document.getElementById('shortcut-name').textContent = decodeURIComponent(shortcutName);
+      }, 1500);
+    }
+    
+    // When page loads, run the shortcut
+    window.onload = runShortcut;
+  </script>
+</head>
+<body>
+  <div class="container">
+    <div id="loading">
+      <h1>Running Shortcut...</h1>
+      <p>Please wait while we launch your shortcut.</p>
+      <div class="message">
+        If nothing happens within a few seconds, your shortcut may not exist or iOS might be blocking the launch.
+      </div>
+    </div>
+    
+    <div id="fallback" style="display: none;">
+      <h1>Shortcut Launch Failed</h1>
+      <p>We couldn't automatically launch the shortcut "<span id="shortcut-name"></span>".</p>
+      
+      <p>Try these options:</p>
+      
+      <div>
+        <a id="direct-link" href="#" class="button">Try Again</a>
+        <a href="list.html" class="button">View All Shortcuts</a>
+      </div>
+      
+      <p class="try-again">
+        If you continue having issues, try creating the shortcut in the Shortcuts app and make sure the name matches exactly.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
