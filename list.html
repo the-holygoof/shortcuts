@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Your iOS Shortcuts</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f7f7f7;
+      color: #333;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      color: #0070CC;
+      margin-bottom: 30px;
+    }
+    .instructions {
+      background-color: white;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .shortcut-list {
+      margin-bottom: 30px;
+    }
+    .shortcut-item {
+      background-color: white;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .shortcut-link {
+      display: block;
+      font-size: 18px;
+      color: #0070CC;
+      text-decoration: none;
+      font-weight: bold;
+      padding: 10px;
+    }
+    .tip {
+      font-size: 14px;
+      color: #666;
+      text-align: center;
+      margin-top: 20px;
+    }
+  </style>
+  <script>
+    // Parse shortcuts from localStorage if available
+    function loadShortcuts() {
+      try {
+        // First try to get shortcuts from localStorage
+        var savedShortcuts = localStorage.getItem('pebble_shortcuts');
+        if (savedShortcuts) {
+          return JSON.parse(savedShortcuts);
+        }
+        
+        // If not in localStorage, check URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const shortcutsParam = urlParams.get('shortcuts');
+        if (shortcutsParam) {
+          const shortcuts = JSON.parse(decodeURIComponent(shortcutsParam));
+          // Save to localStorage for future use
+          localStorage.setItem('pebble_shortcuts', JSON.stringify(shortcuts));
+          return shortcuts;
+        }
+      } catch (e) {
+        console.error('Error loading shortcuts:', e);
+      }
+      
+      // Return empty array if nothing found
+      return [];
+    }
+    
+    // Render the shortcuts list
+    function renderShortcuts() {
+      const shortcuts = loadShortcuts();
+      const listElement = document.getElementById('shortcut-list');
+      
+      // Clear existing list
+      listElement.innerHTML = '';
+      
+      if (shortcuts.length === 0) {
+        // If no shortcuts, show a message
+        const noShortcuts = document.createElement('div');
+        noShortcuts.className = 'shortcut-item';
+        noShortcuts.innerHTML = 'No shortcuts available. <br>Please configure them in the Pebble app.';
+        listElement.appendChild(noShortcuts);
+        return;
+      }
+      
+      // Add each shortcut as a link
+      shortcuts.forEach(function(shortcut) {
+        const item = document.createElement('div');
+        item.className = 'shortcut-item';
+        
+        const link = document.createElement('a');
+        link.className = 'shortcut-link';
+        link.href = 'shortcuts://run-shortcut?name=' + encodeURIComponent(shortcut.name);
+        link.textContent = shortcut.name;
+        
+        item.appendChild(link);
+        listElement.appendChild(item);
+      });
+    }
+    
+    // Initialize the page
+    window.onload = function() {
+      renderShortcuts();
+      
+      // Add some hardcoded examples if you want them to always be available
+      const hardcodedExamples = document.getElementById('hardcoded-examples');
+      
+      // Example: you can add known shortcuts here
+      // hardcodedExamples.innerHTML = `
+      //   <div class="shortcut-item">
+      //     <a href="shortcuts://run-shortcut?name=budzik" class="shortcut-link">budzik</a>
+      //   </div>
+      // `;
+    };
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Your iOS Shortcuts</h1>
+    
+    <div class="instructions">
+      <p>Tap on a shortcut below to run it directly. If you added new shortcuts, you might need to configure them in your Pebble app first.</p>
+    </div>
+    
+    <div class="shortcut-list" id="shortcut-list">
+      <!-- Shortcuts will be added here dynamically -->
+    </div>
+    
+    <div id="hardcoded-examples">
+      <!-- Hardcoded examples will go here -->
+    </div>
+    
+    <p class="tip">If shortcuts don't run, make sure they exist in your Shortcuts app with exactly the same name.</p>
+  </div>
+</body>
+</html>
