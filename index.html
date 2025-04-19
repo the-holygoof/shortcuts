@@ -1,277 +1,270 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Shortcuts Configuration</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shortcuts Configuration</title>
   <style>
     body {
-      font-family: -apple-system, sans-serif;
+      font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       margin: 0;
-      padding: 10px;
-      background: #f8f8f8;
+      padding: 0;
       color: #333;
+      background-color: #f7f7f7;
     }
+    
     .container {
       max-width: 600px;
       margin: 0 auto;
+      padding: 15px;
     }
+    
     h1 {
+      color: #0070CC;
       text-align: center;
-      color: #0066CC;
+      margin-bottom: 5px;
     }
-    .shortcut {
-      background: white;
+    
+    p {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 20px;
+      color: #666;
+    }
+    
+    .shortcut-list {
+      margin-bottom: 20px;
+    }
+    
+    .shortcut-card {
+      background-color: white;
       border-radius: 8px;
       padding: 12px;
       margin-bottom: 15px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
+    
     .shortcut-header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
-    .field {
       margin-bottom: 10px;
     }
+    
+    .shortcut-number {
+      font-weight: bold;
+      margin-right: 10px;
+    }
+    
+    .shortcut-controls {
+      margin-left: auto;
+    }
+    
+    .shortcut-controls button {
+      background: none;
+      border: none;
+      color: #ff3b30;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 5px;
+    }
+    
+    .shortcut-field {
+      margin-bottom: 10px;
+    }
+    
     label {
       display: block;
       margin-bottom: 5px;
-      font-weight: bold;
+      font-weight: 500;
     }
+    
     input, select {
       width: 100%;
       padding: 8px;
       border: 1px solid #ddd;
       border-radius: 4px;
       font-size: 16px;
+      box-sizing: border-box;
     }
-    .delete-btn {
-      background: #ff3b30;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      padding: 5px 10px;
-      cursor: pointer;
-    }
-    .btn {
-      background: #0066CC;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      padding: 10px 15px;
-      font-size: 16px;
-      cursor: pointer;
-      margin: 5px;
-    }
-    .btn-add {
-      background: #34c759;
-    }
-    .btn-cancel {
-      background: #999;
-    }
-    .buttons {
+    
+    .button-container {
       display: flex;
       justify-content: space-between;
-      margin-top: 15px;
+      padding: 10px 0;
     }
-    .color-preview {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      margin-right: 5px;
-      vertical-align: middle;
+    
+    .button {
+      background-color: #0070CC;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .button.cancel {
+      background-color: #999;
+    }
+    
+    .button.add {
+      background-color: #34c759;
+    }
+    
+    .button:hover {
+      opacity: 0.9;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Shortcuts Configuration</h1>
+    <h1>Pebble Shortcuts</h1>
+    <p>Configure your iOS Shortcuts for quick access from your Pebble watch.</p>
     
-    <div id="shortcuts-container">
-      <!-- Shortcuts will be added here -->
+    <div id="shortcut-list" class="shortcut-list">
+      <!-- Shortcut items will be added here -->
     </div>
     
-    <button id="add-btn" class="btn btn-add">Add Shortcut</button>
+    <div class="button-container">
+      <button id="add-btn" class="button add">Add Shortcut</button>
+    </div>
     
-    <div class="buttons">
-      <button id="save-btn" class="btn">Save Settings</button>
-      <button id="cancel-btn" class="btn btn-cancel">Cancel</button>
+    <div class="button-container">
+      <button id="save-btn" class="button">Save Settings</button>
+      <button id="cancel-btn" class="button cancel">Cancel</button>
     </div>
   </div>
 
   <script>
-    // Available colors
-    const COLORS = [
-      { name: 'Red', value: 'red' },
-      { name: 'Orange', value: 'orange' },
-      { name: 'Yellow', value: 'yellow' },
-      { name: 'Green', value: 'green' },
-      { name: 'Blue', value: 'blue' },
-      { name: 'Indigo', value: 'indigo' },
-      { name: 'Purple', value: 'purple' },
-      { name: 'Pink', value: 'pink' }
-    ];
-
-    // Available icons
-    const ICONS = [
-      { name: 'Info', value: 'info' },
-      { name: 'Flag', value: 'flag' },
-      { name: 'Notification', value: 'notification' },
-      { name: 'Alarm', value: 'alarm' },
-      { name: 'Star', value: 'favorite' },
-      { name: 'Settings', value: 'configure' },
-      { name: 'Phone', value: 'phone' },
-      { name: 'Music', value: 'media' }
-    ];
-
-    // Get current settings from URL
-    function getUrlParam(name) {
-      const match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    // Get current configuration from URL parameters
+    function getQueryParam(name) {
+      var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
       return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
     }
-
-    // Shortcuts array
-    let shortcuts = [];
     
-    // Initialize
-    function init() {
-      // Load shortcuts from URL
-      const shortcutsParam = getUrlParam('shortcuts');
-      if (shortcutsParam) {
-        try {
-          shortcuts = JSON.parse(shortcutsParam);
-        } catch (e) {
-          console.error('Error parsing shortcuts', e);
-          shortcuts = [];
-        }
+    // Initialize shortcuts array
+    var shortcuts = [];
+    var shortcutsParam = getQueryParam('shortcuts');
+    
+    if (shortcutsParam) {
+      try {
+        shortcuts = JSON.parse(shortcutsParam);
+      } catch (e) {
+        console.error('Error parsing shortcuts', e);
+        shortcuts = [];
       }
-      
-      // If no shortcuts, add an empty one
-      if (shortcuts.length === 0) {
-        shortcuts.push({
-          name: '',
-          icon: 'notification',
-          color: 'indigo'
-        });
-      }
-      
-      // Render shortcuts
-      renderShortcuts();
-      
-      // Setup event listeners
-      document.getElementById('add-btn').addEventListener('click', addShortcut);
-      document.getElementById('save-btn').addEventListener('click', saveSettings);
-      document.getElementById('cancel-btn').addEventListener('click', cancel);
     }
     
-    // Render all shortcuts
+    // DOM elements
+    var shortcutList = document.getElementById('shortcut-list');
+    var addBtn = document.getElementById('add-btn');
+    var saveBtn = document.getElementById('save-btn');
+    var cancelBtn = document.getElementById('cancel-btn');
+    
+    // Render shortcut items
     function renderShortcuts() {
-      const container = document.getElementById('shortcuts-container');
-      container.innerHTML = '';
+      shortcutList.innerHTML = '';
       
-      shortcuts.forEach((shortcut, index) => {
-        const shortcutEl = document.createElement('div');
-        shortcutEl.className = 'shortcut';
+      shortcuts.forEach(function(shortcut, index) {
+        var card = document.createElement('div');
+        card.className = 'shortcut-card';
         
-        shortcutEl.innerHTML = `
-          <div class="shortcut-header">
-            <h3>Shortcut ${index + 1}</h3>
-            <button class="delete-btn" data-index="${index}">&times;</button>
-          </div>
-          <div class="field">
-            <label for="name-${index}">Name:</label>
-            <input type="text" id="name-${index}" data-index="${index}" data-field="name" 
-                  value="${shortcut.name || ''}" placeholder="Exact shortcut name">
-          </div>
-          <div class="field">
-            <label for="color-${index}">Color:</label>
-            <select id="color-${index}" data-index="${index}" data-field="color">
-              ${COLORS.map(color => `
-                <option value="${color.value}" ${shortcut.color === color.value ? 'selected' : ''}>
-                  <span class="color-preview" style="background: ${color.value}"></span> ${color.name}
-                </option>
-              `).join('')}
-            </select>
-          </div>
-          <div class="field">
-            <label for="icon-${index}">Icon:</label>
-            <select id="icon-${index}" data-index="${index}" data-field="icon">
-              ${ICONS.map(icon => `
-                <option value="${icon.value}" ${shortcut.icon === icon.value ? 'selected' : ''}>
-                  ${icon.name}
-                </option>
-              `).join('')}
-            </select>
-          </div>
-        `;
+        var header = document.createElement('div');
+        header.className = 'shortcut-header';
         
-        container.appendChild(shortcutEl);
-      });
-      
-      // Add event listeners to inputs and delete buttons
-      document.querySelectorAll('[data-field]').forEach(el => {
-        el.addEventListener('change', updateShortcut);
-      });
-      
-      document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', deleteShortcut);
-      });
-    }
-    
-    // Update shortcut when input changes
-    function updateShortcut(e) {
-      const index = parseInt(e.target.dataset.index);
-      const field = e.target.dataset.field;
-      shortcuts[index][field] = e.target.value;
-    }
-    
-    // Add a new shortcut
-    function addShortcut() {
-      shortcuts.push({
-        name: '',
-        icon: 'notification',
-        color: 'indigo'
-      });
-      renderShortcuts();
-    }
-    
-    // Delete a shortcut
-    function deleteShortcut(e) {
-      const index = parseInt(e.target.dataset.index);
-      shortcuts.splice(index, 1);
-      
-      // Add an empty one if none left
-      if (shortcuts.length === 0) {
-        shortcuts.push({
-          name: '',
-          icon: 'notification',
-          color: 'indigo'
+        var number = document.createElement('div');
+        number.className = 'shortcut-number';
+        number.textContent = 'Shortcut ' + (index + 1);
+        
+        var controls = document.createElement('div');
+        controls.className = 'shortcut-controls';
+        
+        var removeBtn = document.createElement('button');
+        removeBtn.innerHTML = '&times;';
+        removeBtn.title = 'Remove';
+        removeBtn.dataset.index = index;
+        removeBtn.addEventListener('click', function() {
+          shortcuts.splice(this.dataset.index, 1);
+          renderShortcuts();
         });
-      }
-      
-      renderShortcuts();
+        
+        controls.appendChild(removeBtn);
+        header.appendChild(number);
+        header.appendChild(controls);
+        
+        // Name field
+        var nameField = document.createElement('div');
+        nameField.className = 'shortcut-field';
+        
+        var nameLabel = document.createElement('label');
+        nameLabel.textContent = 'Shortcut Name:';
+        
+        var nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.value = shortcut.name || '';
+        nameInput.placeholder = 'Enter exact shortcut name';
+        nameInput.dataset.index = index;
+        nameInput.dataset.field = 'name';
+        nameInput.addEventListener('input', updateShortcut);
+        
+        nameField.appendChild(nameLabel);
+        nameField.appendChild(nameInput);
+        
+        // Append all elements
+        card.appendChild(header);
+        card.appendChild(nameField);
+        
+        shortcutList.appendChild(card);
+      });
     }
     
-    // Save settings
-    function saveSettings() {
-      // Filter out empty shortcuts
-      const validShortcuts = shortcuts.filter(s => s.name && s.name.trim() !== '');
+    // Update shortcut data when input changes
+    function updateShortcut(e) {
+      var index = parseInt(this.dataset.index);
+      var field = this.dataset.field;
+      var value = this.value;
       
-      // Return to Pebble
-      window.location.href = 'pebblejs://close#' + encodeURIComponent(JSON.stringify(validShortcuts));
+      shortcuts[index][field] = value;
     }
+    
+    // Add new shortcut
+    addBtn.addEventListener('click', function() {
+      shortcuts.push({
+        name: ''
+      });
+      renderShortcuts();
+      
+      // Scroll to bottom
+      window.scrollTo(0, document.body.scrollHeight);
+    });
+    
+    // Save configuration
+    saveBtn.addEventListener('click', function() {
+      // Filter out shortcuts with empty names
+      var validShortcuts = shortcuts.filter(function(s) {
+        return s.name && s.name.trim() !== '';
+      });
+      
+      // Return to Pebble app
+      window.location.href = 'pebblejs://close#' + encodeURIComponent(JSON.stringify(validShortcuts));
+    });
     
     // Cancel
-    function cancel() {
+    cancelBtn.addEventListener('click', function() {
       window.location.href = 'pebblejs://close';
-    }
+    });
     
-    // Initialize when page loads
-    document.addEventListener('DOMContentLoaded', init);
+    // Initial render
+    renderShortcuts();
+    
+    // Add a default shortcut if none exists
+    if (shortcuts.length === 0) {
+      shortcuts.push({
+        name: ''
+      });
+      renderShortcuts();
+    }
   </script>
 </body>
 </html>
